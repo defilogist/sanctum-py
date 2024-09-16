@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "sanctumpy"
+version = "0.2.3"
+description = "Python client for the Sanctum API"
+authors = ["Defilogist <defilogist@thewise.trade>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+requests = "^2.31.0"
+base58 = "^2.1.1"
+solana = "^0.34.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
