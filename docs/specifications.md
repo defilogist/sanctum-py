@@ -1,10 +1,10 @@
 # Specifications
 
-## sanctumpy.tensor.TensorClient
+## sanctumpy.sanctum.SanctumClient
 
 ### Setup
 
-::: sanctumpy.tensor.SanctumClient
+::: sanctumpy.sanctum.SanctumClient
     options:
         show_source: false
         heading_level: 4
@@ -14,7 +14,7 @@
 
 ### Data 
 
-::: sanctumpy.tensor.TensorClient
+::: sanctumpy.sanctum.SanctumClient
     options:
         show_source: false
         heading_level: 4
@@ -34,7 +34,7 @@
 
 ### Trading 
 
-::: sanctumpy.tensor.SanctumClient
+::: sanctumpy.sanctum.SanctumClient
     options:
         show_source: false
         heading_level: 4
