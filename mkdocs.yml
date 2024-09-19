@@ -1,0 +1,19 @@
+site_name: Tensor Trade Python Client (Unofficial)
+site_url: https://tensortradepy.thewise.trade/
+nav:
+  - Getting started: index.md
+  - Specifications: specifications.md
+theme: 
+  name: readthedocs
+  highlightjs: true
+
+
+markdown_extensions:
+  - codehilite
+
+plugins:
+  - search
+  - mkdocstrings
+
+extra_javascript:
+  - js/highlight.min.js
