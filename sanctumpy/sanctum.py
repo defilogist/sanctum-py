@@ -304,3 +304,9 @@ class SanctumClient:
         transaction = data["tx"]
         # self.run_transaction(transaction)
         return data
+
+    def remove_liquidity(self):
+        pass
+
+    def swap_tokens(self):
+        pass
