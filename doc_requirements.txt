@@ -2,4 +2,4 @@ mkdocs
 mkdocstrings
 mkdocstrings[python]
 mkdocs-dracula-theme
-sanctumpy
+https://github.com/defilogist/sanctum-py
