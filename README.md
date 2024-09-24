@@ -29,7 +29,6 @@ import os
 from sanctumpy import SanctumClient
 
 client = SanctumClient(
-    os.getenv("TENSOR_API_KEY"),
     os.getenv("WALLET_PRIVATE_KEY"), # optional
     "mainnet-beta" # optional
 )
