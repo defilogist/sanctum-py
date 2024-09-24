@@ -16,12 +16,13 @@ from .exceptions import (
     WrongAPIKeyException,
 )
 
+SOL_ADDRESS = "So11111111111111111111111111111111111111112"
+INF_ADDRESS = "5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm"
 
 class SanctumClient:
 
     def __init__(
         self,
-        api_key,
         private_key=None,
         network="devnet",
     ):
@@ -35,11 +36,11 @@ class SanctumClient:
             private_key (str): Your wallet private key.
             network (str): The Solana network to use.
         """
-        self.init_client(api_key)
+        self.init_client()
         if private_key is not None and private_key != "":
             self.init_solana_client(private_key, network)
 
-    def init_client(self, api_key: str):
+    def init_client(self):
         """
         Initialize the Sanctum Trade client and the `requests` session.
 
@@ -47,7 +48,6 @@ class SanctumClient:
             api_key (str): The Sanctum Trade API authentication key.
         """
         self.session = requests.session()
-        self.api_key = api_key
         self.session.headers = {
             'Content-Type': 'application/json',
             'User-Agent': 'sanctumpy 0.1.0'
@@ -278,7 +278,38 @@ class SanctumClient:
         data = self.get("/v1/swap/quote", params=params)
         return data
 
-    def add_liquidity(self, amount, lst_mint="So11111111111111111111111111111111111111112"):
+    def get_add_quote(self, amount, lst_mint=SOL_ADDRESS):
+        """
+        Retrieve the quote for the specified LST.
+
+        Arguments:
+            lst_mint (str): The LST token mint.
+            amount (float): The amount to add.
+        """
+        params = {
+            "lstMint": lst_mint,
+            "amount": str(to_solami(amount)),
+        }
+        result = self.get("/v1/liquidity/add/quote", params=params)
+        return result["lpAmount"]
+
+    def get_remove_quote(self, amount, lst_mint=SOL_ADDRESS):
+        """
+        Retrieve the quote for the specified LST.
+
+        Arguments:
+            lst_mint (str): The LST token mint.
+            amount (float): The amount to remove.
+        """
+        params = {
+            "lstMint": lst_mint,
+            "amount": str(to_solami(amount)),
+        }
+        result = self.get("/v1/liquidity/remove/quote", params=params)
+        print(result)
+        return result["lstAmount"]
+
+    def add_liquidity(self, amount, lst_mint=SOL_ADDRESS, run=False):
         """
         Add liquidity to the specified LST.
 
@@ -286,6 +317,7 @@ class SanctumClient:
             lst_mint (str): The LST token mint.
             amount (float): The amount to add.
         """
+        quote = self.get_add_quote(amount, lst_mint)
         params = {
             "amount": str(to_solami(amount)),
             "dstLpAcc": None,
@@ -296,17 +328,80 @@ class SanctumClient:
                     "unit_limit": 300000
                 }
             },
-            "quotedAmount": str(to_solami(amount)),
+            "quotedAmount": quote,
             "signer": str(self.keypair.pubkey()),
             "srcLstAcc": None
         }
         data = self.post("/v1/liquidity/add", params)
         transaction = data["tx"]
-        # self.run_transaction(transaction)
+        if run:
+            self.run_transaction(transaction)
+        return transaction
+
+    def remove_liquidity(self, amount, lst_mint=SOL_ADDRESS, run=False):
+        """
+        Remove liquidity from the specified LST.
+
+        Arguments:
+            lst_mint (str): The LST token mint.
+            amount (float): The amount to remove.
+        """
+        quote = self.get_remove_quote(amount, lst_mint)
+        params = {
+            "amount": str(to_solami(amount)),
+            "dstLpAcc": None,
+            "lstMint": lst_mint,
+            "priorityFee": {
+                "Auto": {
+                    "max_unit_price_micro_lamports": 3000,
+                    "unit_limit": 300000
+                }
+            },
+            "quotedAmount": quote,
+            "signer": str(self.keypair.pubkey()),
+            "srcLpAcc": None
+        }
+        data = self.post("/v1/liquidity/remove", params)
+        transaction = data["tx"]
+        if run:
+            self.run_transaction(transaction)
+        return transaction
+
+    def swap_tokens(self, from_token, to_token, amount, mode="ExactIn", swap_src="Jup"):
+        """
+        Swap tokens from the specified token to the specified token.
+
+        Arguments:
+            from_token (str): The token to sell.
+            to_token (str): The token to buy.
+            amount (float): The amount to sell.
+            mode (str): The mode of the swap (ExactIn or ExactOut).
+            swap_src (str): The source of the swap (Spool, Stakedex, Jup).
+        """
+        if mode not in ["ExactIn", "ExactOut"]:
+            raise Exception("Invalid mode")
+        if swap_src is not None and swap_src not in ["Spool", "Stakedex", "Jup"]:
+            raise Exception("Invalid swap source")
+
+        quote = self.get_quote(from_token, to_token, amount, mode, swap_src)
+
+        params = {
+            "amount": str(to_solami(amount)),
+            "quotedAmount": str(from_solami(quote["amount"])),
+            "dstLstAcc": None,
+            "input": from_token,
+            "outputLstMint": to_token,
+            "mode": mode,
+            "swapSrc": swap_src,
+            "priorityFee": {
+                "Auto": {
+                    "max_unit_price_micro_lamports": 3000,
+                    "unit_limit": 300000
+                }
+            },
+            "signer": str(self.keypair.pubkey()),
+            "srcLstAcc": None,
+            "swapSrc": swap_src
+        }
+        data = self.get("/v1/swap/quote", params=params)
         return data
-
-    def remove_liquidity(self):
-        pass
-
-    def swap_tokens(self):
-        pass

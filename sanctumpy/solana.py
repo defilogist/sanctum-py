@@ -1,9 +1,8 @@
-from solana.blockhash import BlockhashCache
+import base64
+
 from solana.rpc.api import Client
 from solana.transaction import Transaction
 from solders.keypair import Keypair
-from solders.hash import Hash
-from solders.instruction import Instruction
 from solders.message import to_bytes_versioned, Message, MessageV0
 from solders.transaction import VersionedTransaction
 
@@ -30,6 +29,7 @@ def run_solana_transaction(client, sender_key_pair, transaction_buffer):
     
     if isinstance(transaction_buffer, str):
         transaction_buffer = bytes(transaction_buffer.encode('utf-8'))
+
     transaction = Transaction.deserialize(transaction_buffer)
     signature = transaction.sign(sender_key_pair)
     response = None
@@ -40,35 +40,7 @@ def run_solana_transaction(client, sender_key_pair, transaction_buffer):
     return response
 
 
-def run_solana_string_transaction(client, sender_key_pair, transaction_string):
-    import base64
-    # Decode the base64 string to bytes
-    try:
-        transaction_bytes = base64.b64decode(transaction_string)
-    except:
-        raise ValueError("Invalid base64 string")
-
-    # Deserialize the transaction
-    try:
-        transaction = VersionedTransaction.from_bytes(transaction_bytes)
-    except Exception as e:
-        raise ValueError(f"Failed to deserialize transaction: {str(e)}")
-
-    # Sign the transaction
-    #transaction.sign([sender_key_pair])
-
-    # Send the transaction
-    try:
-        response = client.send_transaction(transaction)
-    except Exception as e:
-        raise TransactionFailedException(f"Failed to send transaction: {str(e)}")
-
-    return response
-
-
 def run_solana_versioned_transaction(client, sender_key_pair, transaction_buffer):
-    import base64
-    # Decode the base64 string to bytes
     try:
         transaction_buffer = base64.b64decode(transaction_buffer)
     except:
